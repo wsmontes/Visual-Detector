@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Detector4</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Real-Time Object Detection with Distributed Overlays</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        color: #fff;
+        font-family: sans-serif;
+      }
+      #container {
+        position: relative;
+        max-width: 640px;
+        margin: 0 auto;
+      }
+      video,
+      #overlayCanvas {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      #overlayCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+      }
+      /* Top-left overlay: Status (will be hidden after models load) */
+      #topLeftOverlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        margin: 10px;
+        text-align: left;
+        font-size: 16px;
+      }
+      /* Top-right overlay: Context */
+      #topRightOverlay {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 10px;
+        text-align: right;
+        font-size: 16px;
+      }
+      /* Bottom-left overlay: Detection data */
+      #bottomLeftOverlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        margin: 10px;
+        text-align: left;
+        font-size: 12px;
+      }
+      button {
+        display: block;
+        margin: 10px auto;
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <video id="video" playsinline autoplay muted></video>
+      <canvas id="overlayCanvas"></canvas>
+      <!-- Overlays positioned at the edges -->
+      <div id="topLeftOverlay">
+        <div id="status">Status: Not started</div>
+      </div>
+      <div id="topRightOverlay">
+        <div id="contextResult">Context: N/A</div>
+      </div>
+      <div id="bottomLeftOverlay">
+        <div id="detectionData">Detection: N/A</div>
+      </div>
+    </div>
+    <button id="startButton">Start App</button>
+
+    <!-- Load TensorFlow.js and models -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <script>
+      // DOM Elements
+      const video = document.getElementById("video");
+      const overlayCanvas = document.getElementById("overlayCanvas");
+      const ctx = overlayCanvas.getContext("2d");
+      const statusDiv = document.getElementById("status");
+      const contextResultDiv = document.getElementById("contextResult");
+      const detectionDataDiv = document.getElementById("detectionData");
+      const startButton = document.getElementById("startButton");
+
+      let objectDetectionModel;
+      let mobilenetModel;
+      let contextResults = [];
+
+      // Set up the camera and adjust canvas sizes
+      async function setupCamera() {
+        try {
+          statusDiv.innerText = "Status: Setting up camera...";
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }
+          });
+          video.srcObject = stream;
+          return new Promise((resolve) => {
+            video.onloadedmetadata = () => {
+              overlayCanvas.width = video.videoWidth;
+              overlayCanvas.height = video.videoHeight;
+              resolve();
+            };
+          });
+        } catch (error) {
+          alert("Error accessing camera: " + error.message);
+        }
+      }
+
+      // Load the COCO-SSD object detection model
+      async function loadObjectDetectionModel() {
+        statusDiv.innerText = "Status: Downloading object detection model...";
+        objectDetectionModel = await cocoSsd.load();
+        statusDiv.innerText = "Status: Object detection model loaded.";
+      }
+
+      // Load the MobileNet model for context classification
+      async function loadMobileNetModel() {
+        statusDiv.innerText = "Status: Downloading context classifier model...";
+        mobilenetModel = await mobilenet.load();
+        statusDiv.innerText = "Status: All models loaded. Running detection...";
+      }
+
+      // Object detection loop: detect objects and draw bounding boxes on the overlay canvas
+      async function detectFrame() {
+        const predictions = await objectDetectionModel.detect(video);
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        predictions.forEach((prediction) => {
+          const [x, y, width, height] = prediction.bbox;
+          ctx.strokeStyle = "#00FFFF";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x, y, width, height);
+          ctx.fillStyle = "#00FFFF";
+          ctx.font = "16px Arial";
+          const text = `${prediction.class} (${(prediction.score * 100).toFixed(1)}%)`;
+          const textWidth = ctx.measureText(text).width;
+          ctx.fillRect(x, y - 16, textWidth + 4, 16);
+          ctx.fillStyle = "#000000";
+          ctx.fillText(text, x + 2, y - 2);
+        });
+        detectionDataDiv.innerText = "Detection: " + JSON.stringify(predictions, null, 2);
+        requestAnimationFrame(detectFrame);
+      }
+
+      // Context classification using MobileNet (aggregated over a 10-second window)
+      async function classifyFrame() {
+        const results = await mobilenetModel.classify(video);
+        const prediction = results[0];
+        const now = Date.now();
+        contextResults.push({
+          label: prediction.className,
+          confidence: prediction.probability,
+          timestamp: now
+        });
+        // Keep only results from the last 10 seconds
+        contextResults = contextResults.filter(item => now - item.timestamp < 10000);
+        const counts = {};
+        contextResults.forEach(item => {
+          counts[item.label] = (counts[item.label] || 0) + 1;
+        });
+        const aggregatedLabel = Object.keys(counts).reduce((a, b) =>
+          counts[a] > counts[b] ? a : b,
+          "N/A"
+        );
+        contextResultDiv.innerText = "Context: " + aggregatedLabel;
+      }
+
+      // Start periodic context classification (every 2 seconds)
+      function startClassificationInterval() {
+        setInterval(classifyFrame, 2000);
+      }
+
+      // Start the full application
+      startButton.addEventListener("click", async () => {
+        startButton.disabled = true;
+        await setupCamera();
+        await loadObjectDetectionModel();
+        await loadMobileNetModel();
+        // Turn off the status overlay so that downloading info doesn't overlap real-time data.
+        statusDiv.style.display = "none";
+        detectFrame();
+        startClassificationInterval();
+      });
+    </script>
+  </body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
