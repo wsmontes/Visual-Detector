@@ -48,6 +48,10 @@ async function setupCamera() {
     return new Promise((resolve) => {
       video.onloadedmetadata = () => {
         updateCanvasSize();
+        // Force a resize to ensure the app properly fills the viewport
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+        }, 100);
         resolve();
       };
     });
@@ -79,14 +83,15 @@ function updateCanvasSize() {
     // Determine scale and offset to maintain aspect ratio
     let scale, offsetX = 0, offsetY = 0;
     
+    // Since we're using object-fit: cover, we want to fill the entire container
     if (containerAspect > videoAspect) {
-      // Container is wider than video
-      scale = containerHeight / videoHeight;
-      offsetX = (containerWidth - (videoWidth * scale)) / 2;
-    } else {
-      // Container is taller than video
+      // Container is wider than video - scale based on width
       scale = containerWidth / videoWidth;
       offsetY = (containerHeight - (videoHeight * scale)) / 2;
+    } else {
+      // Container is taller than video - scale based on height
+      scale = containerHeight / videoHeight;
+      offsetX = (containerWidth - (videoWidth * scale)) / 2;
     }
     
     // Apply transformation matrix for drawing
@@ -97,6 +102,12 @@ function updateCanvasSize() {
 // Handle window resize events
 function setupResizeHandler() {
   const debouncedResize = debounce(() => {
+    // Update CSS variable for viewport height (fix for mobile browsers)
+    document.documentElement.style.setProperty(
+      '--vh', 
+      `${window.innerHeight * 0.01}px`
+    );
+    
     updateCanvasSize();
     
     // Check if orientation has changed
@@ -108,7 +119,7 @@ function setupResizeHandler() {
         setupCamera();
       }
     }
-  }, 250);
+  }, 150); // Reduced debounce time for more responsive resize
   
   window.addEventListener('resize', debouncedResize);
   
@@ -304,11 +315,26 @@ startButton.addEventListener("click", async () => {
 
 // Initial setup
 document.addEventListener('DOMContentLoaded', () => {
-  updateCanvasSize();
+  // Force body to take up full viewport height
+  function setBodyHeight() {
+    document.documentElement.style.setProperty(
+      '--vh', 
+      `${window.innerHeight * 0.01}px`
+    );
+    document.body.style.height = `${window.innerHeight}px`;
+  }
+  
+  // Set initial height
+  setBodyHeight();
+  
+  // Add resize listener for height
+  window.addEventListener('resize', setBodyHeight);
   
   // Set initial inner height for mobile browsers
   document.documentElement.style.setProperty(
     '--vh', 
     `${window.innerHeight * 0.01}px`
   );
+  
+  updateCanvasSize();
 });
