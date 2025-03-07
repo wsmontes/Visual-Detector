@@ -4,123 +4,175 @@ body {
   background: #000;
   color: #fff;
   font-family: sans-serif;
-  height: 100vh;
+  /* Using a better approach for full height on mobile */
+  height: 100%;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Prevent scrolling */
+}
+
+html {
+  height: -webkit-fill-available; /* Fix for iOS height issues */
 }
 
 #container {
   position: relative;
   width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
   flex: 1;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 video,
 #overlayCanvas {
+  position: absolute;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: block;
+  object-fit: contain; /* Changed to contain to avoid cropping */
 }
 
 #overlayCanvas {
-  position: absolute;
-  top: 0;
-  left: 0;
   pointer-events: none;
 }
 
-/* Overlay styles with better visibility */
+/* Overlay styles with better visibility and mobile-friendly sizing */
 .overlay {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   padding: 0.5rem;
   border-radius: 0.5rem;
-  max-width: 50%;
   backdrop-filter: blur(3px);
   z-index: 10;
+  max-width: 45%;
+  transition: opacity 0.3s ease;
 }
 
 /* Top-left overlay: Status */
 #topLeftOverlay {
   position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
+  top: env(safe-area-inset-top, 0.5rem);
+  left: env(safe-area-inset-left, 0.5rem);
   text-align: left;
-  font-size: 1rem;
+  font-size: clamp(0.75rem, 2vw, 1rem);
 }
 
 /* Top-right overlay: Context */
 #topRightOverlay {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: env(safe-area-inset-top, 0.5rem);
+  right: env(safe-area-inset-right, 0.5rem);
   text-align: right;
-  font-size: 1rem;
+  font-size: clamp(0.75rem, 2vw, 1rem);
 }
 
 /* Bottom-left overlay: Detection data */
 #bottomLeftOverlay {
   position: absolute;
-  bottom: 0.5rem;
-  left: 0.5rem;
+  bottom: env(safe-area-inset-bottom, 0.5rem);
+  left: env(safe-area-inset-left, 0.5rem);
   text-align: left;
-  font-size: 0.8rem;
+  font-size: clamp(0.7rem, 1.8vw, 0.9rem);
   max-height: 30vh;
   overflow-y: auto;
 }
 
 button {
   display: block;
+  width: 80%;
+  max-width: 300px;
   margin: 0.8rem auto;
-  padding: 0.8rem 1.5rem;
+  padding: 0.8rem 1rem;
   font-size: 1rem;
   background: #007bff;
   color: white;
   border: none;
   border-radius: 0.25rem;
   cursor: pointer;
+  z-index: 20;
+  touch-action: manipulation; /* Prevent double tap zoom on mobile */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
+  margin-bottom: env(safe-area-inset-bottom, 0.8rem); /* Safe area for notches */
 }
 
 button:disabled {
   background: #6c757d;
   cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.controls-container {
+  padding: 0.5rem;
+  width: 100%;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 /* Media queries for different screen sizes */
 @media (min-width: 768px) {
-  #container {
-    max-height: 80vh;
-  }
-  
   .overlay {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    max-width: 40%;
   }
   
   #bottomLeftOverlay {
+    max-width: 35%;
+  }
+  
+  button {
+    width: 50%;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 380px) {
+  .overlay {
+    font-size: 0.7rem;
+    padding: 0.3rem;
+    max-width: 45%;
+  }
+  
+  button {
+    padding: 0.6rem;
+    margin: 0.5rem auto;
     font-size: 0.9rem;
-    max-width: 40%;
   }
 }
 
 /* Landscape orientation specific styles */
-@media (orientation: landscape) and (max-height: 500px) {
+@media (orientation: landscape) {
   #container {
-    height: 80vh;
+    height: calc(100% - 50px); /* Account for controls */
+  }
+  
+  .overlay {
+    max-width: 30%;
+  }
+  
+  #topLeftOverlay, #topRightOverlay {
+    top: 0.3rem;
+  }
+  
+  #bottomLeftOverlay {
+    bottom: 0.3rem;
+    max-height: 50vh;
   }
   
   button {
     margin: 0.4rem auto;
     padding: 0.4rem 1rem;
   }
-  
-  .overlay {
-    font-size: 0.8rem;
-  }
-  
-  #bottomLeftOverlay {
-    max-height: 60vh;
-  }
+}
+
+/* Hide scrollbar but allow scrolling in detection data */
+#detectionData {
+  scrollbar-width: none; /* Firefox */
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+#detectionData::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
 }

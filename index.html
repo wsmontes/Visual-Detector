@@ -2,8 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Real-Time Object Detection with Distributed Overlays</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Real-Time Object Detection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="stylesheet" href="css/styles.css">
   </head>
   <body>
@@ -21,7 +23,9 @@
         <div id="detectionData">Detection: N/A</div>
       </div>
     </div>
-    <button id="startButton">Start App</button>
+    <div class="controls-container">
+      <button id="startButton">Start App</button>
+    </div>
 
     <!-- Load TensorFlow.js and models -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
