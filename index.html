@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Real-Time Object Detection with Distributed Overlays</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <link rel="stylesheet" href="css/styles.css">
   </head>
   <body>
@@ -11,13 +11,13 @@
       <video id="video" playsinline autoplay muted></video>
       <canvas id="overlayCanvas"></canvas>
       <!-- Overlays positioned at the edges -->
-      <div id="topLeftOverlay">
+      <div id="topLeftOverlay" class="overlay">
         <div id="status">Status: Not started</div>
       </div>
-      <div id="topRightOverlay">
+      <div id="topRightOverlay" class="overlay">
         <div id="contextResult">Context: N/A</div>
       </div>
-      <div id="bottomLeftOverlay">
+      <div id="bottomLeftOverlay" class="overlay">
         <div id="detectionData">Detection: N/A</div>
       </div>
     </div>

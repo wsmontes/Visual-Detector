@@ -4,18 +4,25 @@ body {
   background: #000;
   color: #fff;
   font-family: sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 #container {
   position: relative;
-  max-width: 640px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
+  flex: 1;
+  overflow: hidden;
 }
 
 video,
 #overlayCanvas {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   display: block;
 }
 
@@ -26,39 +33,94 @@ video,
   pointer-events: none;
 }
 
-/* Top-left overlay: Status (will be hidden after models load) */
+/* Overlay styles with better visibility */
+.overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  max-width: 50%;
+  backdrop-filter: blur(3px);
+  z-index: 10;
+}
+
+/* Top-left overlay: Status */
 #topLeftOverlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  margin: 10px;
+  top: 0.5rem;
+  left: 0.5rem;
   text-align: left;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 /* Top-right overlay: Context */
 #topRightOverlay {
   position: absolute;
-  top: 0;
-  right: 0;
-  margin: 10px;
+  top: 0.5rem;
+  right: 0.5rem;
   text-align: right;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 /* Bottom-left overlay: Detection data */
 #bottomLeftOverlay {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  margin: 10px;
+  bottom: 0.5rem;
+  left: 0.5rem;
   text-align: left;
-  font-size: 12px;
+  font-size: 0.8rem;
+  max-height: 30vh;
+  overflow-y: auto;
 }
 
 button {
   display: block;
-  margin: 10px auto;
-  padding: 10px 20px;
-  font-size: 16px;
+  margin: 0.8rem auto;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Media queries for different screen sizes */
+@media (min-width: 768px) {
+  #container {
+    max-height: 80vh;
+  }
+  
+  .overlay {
+    font-size: 1.2rem;
+  }
+  
+  #bottomLeftOverlay {
+    font-size: 0.9rem;
+    max-width: 40%;
+  }
+}
+
+/* Landscape orientation specific styles */
+@media (orientation: landscape) and (max-height: 500px) {
+  #container {
+    height: 80vh;
+  }
+  
+  button {
+    margin: 0.4rem auto;
+    padding: 0.4rem 1rem;
+  }
+  
+  .overlay {
+    font-size: 0.8rem;
+  }
+  
+  #bottomLeftOverlay {
+    max-height: 60vh;
+  }
 }
