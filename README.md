@@ -2,6 +2,10 @@
 
 A real-time object detection and classification web application that uses TensorFlow.js and computer vision models to identify objects and provide contextual information from the camera feed.
 
+## Live Demo
+
+Try the application now: [Visual Detector Demo](https://wsmontes.github.io/Visual-Detector/)
+
 ## Features
 
 - Real-time object detection using COCO-SSD model
@@ -28,23 +32,29 @@ A real-time object detection and classification web application that uses Tensor
 
 ### Installation
 
-1. Clone this repository:
+1. **Option 1: Access the live demo**
+   
+   Visit [https://wsmontes.github.io/Visual-Detector/](https://wsmontes.github.io/Visual-Detector/)
+
+2. **Option 2: Run locally**
+
+   Clone this repository:
    ```
    git clone https://github.com/yourusername/Visual-Detector.git
    ```
 
-2. Navigate to the project directory:
+   Navigate to the project directory:
    ```
    cd Visual-Detector
    ```
 
-3. Open `index.html` in your browser or use a local development server:
+   Open `index.html` in your browser or use a local development server:
    ```
    # Using Python's built-in server
    python -m http.server
    ```
 
-4. Click the "Start App" button to begin detection.
+   Click the "Start App" button to begin detection.
 
 ## Usage
 
@@ -63,4 +73,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - TensorFlow.js team for providing the models and framework
 - COCO dataset for object detection training data
-```
